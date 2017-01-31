@@ -2,48 +2,91 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
-int main(int argc, char* argv[]){
-  int nThreads = omp_get_max_threads();
-  int linPerThd = 100000;
-  FILE* data = fopen(argv[1],"r");
-  perror("");
-  char* line = NULL;
-  char** lines = new char*[linPerThd*nThreads];
-  for(int i=0;i<linPerThd*nThreads;++i) lines[i]=NULL;
-  size_t count=300;
-  getline(&line, &count, data);
-  printf("Reading %d lines\n", linPerThd*nThreads);
-  for(int i=0;i<linPerThd*nThreads;++i){
-    count=300;
-    getline(&(lines[i]), &count, data);
-    if(i%(linPerThd*nThreads/10)==0){
-      printf("|");
-      fflush(stdout);
-    }
+using namespace std;
+
+typedef struct{
+  int startHour;
+  int endHour;
+  double length;
+} entry;
+
+int fillBuffer(char** buffer, int nlines, int linLen, FILE* file, bool skipFirst){
+  size_t len = (size_t) linLen;
+  int lineCount=0, ret=0;
+  
+  printf("Reading %d lines\n", nlines);
+  
+  if(skipFirst) ret=getline(&(buffer[0]), &len, file);
+  
+  for(int i=0;i<nlines;++i){
+    len = (size_t) linLen;
+    ret = getline(&(buffer[i]), &len, file);
+    if(ret == -1) break;
+    if(i % (nlines/100) == 0) fprintf(stderr, "|");
+    lineCount++;
   }
   printf("Done\n");
-  double total = 0.0;
+  return lineCount;
+}
+
+int min(int a, int b){
+  return (a<b ? a : b);
+}
+
+void processChunk(char** buffer, double& total, vector<entry> out, int linPerThd, int lines){
+  int threads = 1 + ((lines-1)/linPerThd);
   #pragma omp parallel for
-  for(int j=0;j<nThreads;j++){
+  for(int j=0;j<threads;j++){
     double subtotal=0.0;
-    for(int k=0;k<linPerThd;k++){
-      char *ptr, *current;
-      char *start, *end;
-      double length;
-      current=strtok_r(lines[j*linPerThd+k], ",", &ptr);
+    int lineCount = min(lines-linPerThd*j, linPerThd);
+    entry *subList = new entry[lineCount];
+    for(int k=0;k<lineCount;k++){
+      char *ptr = NULL, *current = NULL;
+      current=strtok_r(buffer[j*linPerThd+k], ",", (&ptr));
+      entry& toAdd = subList[k];
       for(int i=0;i<5;i++){
-        //if(i==1) start=strdup(current);
-        //if(i==2) end=strdup(current);
-        if(i==4) length=atof(current);
+        if(i==1) sscanf(current, "%*d-%*d-%*d %d", &(toAdd.startHour));
+        if(i==2) sscanf(current, "%*d-%*d-%*d %d", &(toAdd.endHour));
+        if(i==4) toAdd.length=atof(current);
         current=strtok_r(NULL, ",", &ptr);
       }
-      subtotal+=length;
+      subtotal+=toAdd.length;
     }
     #pragma omp atomic
     total+=subtotal;
+    #pragma omp critical
+    out.insert(out.end(), subList, subList+lineCount);
+    delete[] subList;
   }
-  printf("Average trip length: %f\n", total/(linPerThd*nThreads));
-    
+}
+
+int main(int argc, char* argv[]){
+  vector<entry> entries;
+  int nThreads = omp_get_max_threads();
+  int linPerThd = 1000000;
+  int chunkSize = nThreads*linPerThd;
+  FILE* data = fopen(argv[1],"r");
+  char** lines = new char*[nThreads*linPerThd];
+  fprintf(stderr, "Allocating memory\n");
+  for(int i=0;i<chunkSize;++i) lines[i]=new char[181];
+  
+  double total = 0.0;
+  int totalCount = 0;
+
+  int lineCount = fillBuffer(lines, chunkSize, 180, data, true);
+  processChunk(lines, total, entries, linPerThd, lineCount);
+  totalCount+=lineCount;
+  while(lineCount == chunkSize){
+    lineCount = fillBuffer(lines, chunkSize, 180, data, false);
+    processChunk(lines, total, entries, linPerThd, lineCount);
+    totalCount+=lineCount;
+  }
+
+  printf("Average trip length: %f\n", total/(totalCount));
+  
+  for(int i=0;i<linPerThd*nThreads;++i) delete lines[i];
+  delete[] lines;
   return 0;
 }
