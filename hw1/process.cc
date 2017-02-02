@@ -8,7 +8,6 @@ using namespace std;
 
 typedef struct{
   int startHour;
-  int endHour;
   double length;
 } entry;
 
@@ -35,7 +34,7 @@ int min(int a, int b){
   return (a<b ? a : b);
 }
 
-void processChunk(char** buffer, double& total, vector<entry> out, int linPerThd, int lines){
+void processChunk(char** buffer, double& total, vector<entry> &out, int linPerThd, int lines){
   int threads = 1 + ((lines-1)/linPerThd);
   #pragma omp parallel for
   for(int j=0;j<threads;j++){
@@ -48,7 +47,7 @@ void processChunk(char** buffer, double& total, vector<entry> out, int linPerThd
       entry& toAdd = subList[k];
       for(int i=0;i<5;i++){
         if(i==1) sscanf(current, "%*d-%*d-%*d %d", &(toAdd.startHour));
-        if(i==2) sscanf(current, "%*d-%*d-%*d %d", &(toAdd.endHour));
+        //if(i==2) sscanf(current, "%*d-%*d-%*d %d", &(toAdd.endHour));
         if(i==4) toAdd.length=atof(current);
         current=strtok_r(NULL, ",", &ptr);
       }
@@ -85,8 +84,34 @@ int main(int argc, char* argv[]){
   }
 
   printf("Average trip length: %f\n", total/(totalCount));
-  
+  printf("Freeing memory\n"); 
   for(int i=0;i<linPerThd*nThreads;++i) delete lines[i];
   delete[] lines;
+  
+  printf("Processing...\n");
+  int finalCounts[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  int maxChunk = totalCount/nThreads+1;
+  #pragma omp parallel for
+  for(int i=0;i<nThreads;i++){
+    int counts[24]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int nentries = min(maxChunk, totalCount-(maxChunk*i));
+    for(int j=i*maxChunk;j<i*maxChunk+nentries;j++){
+      if(entries[j].length>(total/totalCount)){
+        if(entries[j].startHour<0 || entries[j].startHour>23)
+          fprintf(stderr, "Bad hour: %d\n", entries[j].startHour);
+        else
+          counts[entries[j].startHour]++;
+      }
+    }
+    #pragma omp critical
+    for(int j=0;j<24;j++){
+      finalCounts[j]+=counts[j];
+    }
+  }
+
+  int max = 0;
+  for(int i=1;i<24;i++)
+    if(finalCounts[i]>finalCounts[max]) max=i;
+  printf("Hour with most rides longer than average: %0d:00\n", max);
   return 0;
 }
