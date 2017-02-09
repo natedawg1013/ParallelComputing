@@ -1,10 +1,5 @@
-// Time-stamp: </w/parallel/w/openmp/class/taskfib.cc, Sun,  2 Feb 2014, 12:06:13 EST, http://wrfranklin.org/>
-
-// Demo OpenMP tasks for fibonacci; from the OpenMP standard doc.
-
 #include <omp.h>
 #include <iostream>
-#include <math.h>
 
 #define count 10000
 
