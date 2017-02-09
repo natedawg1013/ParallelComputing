@@ -23,6 +23,7 @@ int main(int argc, char* argv[]){
   clock_gettime(CLOCK_MONOTONIC, &start);
 #pragma omp parallel for
   for(int i=0;i<count;i++){
+#pragma omp atomic
     total+=a[i];
   }
   clock_gettime(CLOCK_MONOTONIC, &finish);

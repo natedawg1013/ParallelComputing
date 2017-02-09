@@ -21,7 +21,7 @@ int main(int argc, char* argv[]){
 
   float total=0.0; 
   clock_gettime(CLOCK_MONOTONIC, &start);
-#pragma omp parallel for
+#pragma omp parallel for reduction(+:total)
   for(int i=0;i<count;i++){
     total+=a[i];
   }

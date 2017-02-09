@@ -23,7 +23,10 @@ int main(int argc, char* argv[]){
   clock_gettime(CLOCK_MONOTONIC, &start);
 #pragma omp parallel for
   for(int i=0;i<count;i++){
-    total+=a[i];
+#pragma omp critical
+    {
+      total+=a[i];
+    }
   }
   clock_gettime(CLOCK_MONOTONIC, &finish);
 

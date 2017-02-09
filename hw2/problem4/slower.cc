@@ -1,37 +1,37 @@
 #include <cstdio>
 #include <ctime>
 #include <iostream> 
-#include <omp.h>
 #include <cstdlib>
+#include <omp.h>
 
-#define count 1000000000
+#define dim 10000
+#define count 10 
 
 using namespace std;
 
-
-
 int main(int argc, char* argv[]){
-  float a[count];
+  int a[dim];
+  
   struct timespec start, finish;
   double elapsed;
 
-  for(int i=0;i<count;i++){
-    a[i]= (float) (rand()) / RAND_MAX;
+  for(int i=0;i<dim;i++){
+    a[i]=1;
   }
-
-  float total=0.0; 
   clock_gettime(CLOCK_MONOTONIC, &start);
-#pragma omp parallel for
   for(int i=0;i<count;i++){
-    total+=a[i];
+#pragma omp parallel for
+    for(int j=0;j<dim;j++){
+#pragma omp critical
+      a[j]++;      
+    }
   }
   clock_gettime(CLOCK_MONOTONIC, &finish);
-
+//  cerr<<endl;
   elapsed = (finish.tv_sec - start.tv_sec);
   elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
   cout<<"Time elapsed: "<<elapsed<<" seconds"<<endl;
-  cout<<"Result: "<<total<<endl;
-  
+
   return 0;
 }
