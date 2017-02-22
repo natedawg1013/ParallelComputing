@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
       dx=z[i]-z[j];
       double d=sqrt(dx*dx+dy*dy+dz*dz);
       if(d==0.0f) continue;
-      subtotal+=1/(sqrt(dx*dx+dy*dy+dz*dz));
+      subtotal+=1/d;
     }
     total+=subtotal;
   }
