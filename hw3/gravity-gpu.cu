@@ -10,15 +10,26 @@
 #include <cmath>
 using namespace std;
 
-float *x, *y, *z;
+__device__ __managed__ float *x, *y, *z, *res;
 
-
+__global__ void calcGravity(const size_t n){
+  unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if(i<n){
+    res[i]=0.0f;
+    for(int j=0;j<n;j++){
+      if(j!=i){
+        float d = (x[i]-x[j])*(x[i]-x[j]);
+        d +=      (y[i]-y[j])*(y[i]-y[j]);
+        d +=      (z[i]-z[j])*(z[i]-z[j]);
+        res[i]+=1/sqrt(d);
+      }
+    }
+  }
+}
 
 int main(int argc, char* argv[]){
   char* &filename = argv[1];
   vector<const char*> lineAddrs;
-  int ndex = 0;//omp_get_max_threads();
-  if(argc>=3) ndex=atoi(argv[2]);
   struct stat st;
   stat(filename, &st);
   size_t filesize = st.st_size;
@@ -33,12 +44,12 @@ int main(int argc, char* argv[]){
       lineAddrs.push_back(input+i+1);
     }
   }
-  x=(float*) malloc((size_t) lines*sizeof(float));
-  y=(float*) malloc((size_t) lines*sizeof(float));
-  z=(float*) malloc((size_t) lines*sizeof(float));
+  cudaMallocManaged(&x,   (size_t) lines*sizeof(float));
+  cudaMallocManaged(&y,   (size_t) lines*sizeof(float));
+  cudaMallocManaged(&z,   (size_t) lines*sizeof(float));
+  cudaMallocManaged(&res, (size_t) lines*sizeof(float));
   for(int i=0;i<lines;i++){
     const char *a,*b,*c;
-    char temp[30];
     a=lineAddrs[i];
     b=strpbrk(strpbrk(a," \t"),"-0123456789");
     c=strpbrk(strpbrk(b," \t"),"-0123456789");
@@ -48,20 +59,18 @@ int main(int argc, char* argv[]){
     if(!(i%1000)) cout<<i<<endl;
   }
   munmap(file, filesize);
+  
+  const size_t block_size = 256;
+  size_t grid_size = (lines + block_size -1)/ block_size;
+  cout<<"Sending to GPU"<<endl;
+  // launch the kernel
+  calcGravity<<<grid_size, block_size>>>(lines);
+ 
+  cudaDeviceSynchronize();
+  cout<<"Summing"<<endl;
   double total=0.0f;
-#pragma omp parallel for reduction(+:total)
   for(int i=0;i<lines;i++){
-    double subtotal=0.0f, dx, dy, dz;
-    for(int j=0;j<lines;j++){
-      if(i==j) continue;
-      dx=x[i]-x[j];
-      dx=y[i]-y[j];
-      dx=z[i]-z[j];
-      double d=sqrt(dx*dx+dy*dy+dz*dz);
-      if(d==0.0f) continue;
-      subtotal+=1/(sqrt(dx*dx+dy*dy+dz*dz));
-    }
-    total+=subtotal;
+    total+=res[i];
   }
   cout<<total<<endl;
   return 0;
