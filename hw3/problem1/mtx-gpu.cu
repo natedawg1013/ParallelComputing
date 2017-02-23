@@ -42,7 +42,7 @@ int main(int argc, char* argv[]){
   // launch the kernel
 
   clock_gettime(CLOCK_MONOTONIC, &start);
-  calcGravity<<<dimGrid, dimBlock>>>(lines);
+  calcGravity<<<dimGrid, dimBlock>>>(MTX_DIM);
   cudaDeviceSynchronize();
   clock_gettime(CLOCK_MONOTONIC, &finish);
 
