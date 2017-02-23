@@ -10,21 +10,26 @@
 #include <cmath>
 using namespace std;
 
-__device__ __managed__ float *x, *y, *z, *res;
+__device__ __managed__ float *x, *y, *z, *res, gpuTotal;
 
 __global__ void calcGravity(const size_t n){
   unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if(i==0) total=0;
   if(i<n){
+    float result = 0;
     res[i]=0.0f;
     for(int j=0;j<n;j++){
       if(j!=i){
         float d = (x[i]-x[j])*(x[i]-x[j]);
         d +=      (y[i]-y[j])*(y[i]-y[j]);
         d +=      (z[i]-z[j])*(z[i]-z[j]);
-        res[i]+=1/sqrt(d);
+        result+=1/sqrt(d);
       }
     }
+    res[i]=result;
+    atomicAdd(&gpuTotal, res[i]);
   }
+  
 }
 
 int main(int argc, char* argv[]){
@@ -73,5 +78,6 @@ int main(int argc, char* argv[]){
     total+=res[i];
   }
   cout<<total<<endl;
+  cout<<gpuTotal<<endl;
   return 0;
 }
