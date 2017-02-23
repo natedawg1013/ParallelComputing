@@ -17,13 +17,13 @@ __global__ void calcGravity(const size_t n){
   if(i==0) gpuTotal=0;
   if(i<n){
     float result = 0;
+    float dx, dy, dz;
     for(int j=0;j<n;j++){
       if(j!=i){
-        float dx, dy, dz;
         dx = x[i]-x[j];
         dy = y[i]-y[j];
         dz = z[i]-z[j];
-        result+=1/sqrt(d);
+        result+=1/sqrt(dx*dx+dy*dy+dz*dz);
       }
     }
     atomicAdd(&gpuTotal, result);
