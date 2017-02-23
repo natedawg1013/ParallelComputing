@@ -11,10 +11,12 @@ typedef struct {
 
 #define BLOCK_SIZE 16
 
-float *x, *y, *z;
+float *xc, *yc, *zc;
 
 __device__ __managed__ float *x, *y, *z, *res;
 
 float *valuesA;
 float *valuesB;
 float *results;
+
+int lines;

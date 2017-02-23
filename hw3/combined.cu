@@ -14,55 +14,19 @@
 
 using namespace std;
 
-
-
-float *x, *y, *z;
-
-
-
-int main(int argc, char* argv[]){
-  char* &filename = argv[1];
-  vector<const char*> lineAddrs;
-  int ndex = 0;//omp_get_max_threads();
-  if(argc>=3) ndex=atoi(argv[2]);
-  struct stat st;
-  stat(filename, &st);
-  size_t filesize = st.st_size;
-  int fd = open(filename,O_RDONLY,0);
-  void* file = mmap(NULL,  filesize, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0);
-  const char* input = (const char*) file;
-  int lines=0;
-  lineAddrs.push_back(input);
-  for(int i=0;i<filesize;i++){
-    if(input[i]=='\n'){
-      lines++;
-      lineAddrs.push_back(input+i+1);
-    }
-  }
-  fillCPU();
-  fillGPU();
-  fillGPUTiled();
-  munmap(file, filesize);
-  calcCPU();
-  calcGPU();
-  calcGPUTiled();
-  return 0;
-}
-
-
 void fillCPU(){
-  x=(float*) malloc((size_t) lines*sizeof(float));
-  y=(float*) malloc((size_t) lines*sizeof(float));
-  z=(float*) malloc((size_t) lines*sizeof(float));
+  xc=(float*) malloc((size_t) lines*sizeof(float));
+  yc=(float*) malloc((size_t) lines*sizeof(float));
+  zc=(float*) malloc((size_t) lines*sizeof(float));
   for(int i=0;i<lines;i++){
     const char *a,*b,*c;
     char temp[30];
     a=lineAddrs[i];
     b=strpbrk(strpbrk(a," \t"),"-0123456789");
     c=strpbrk(strpbrk(b," \t"),"-0123456789");
-    x[i]=atof(a);
-    y[i]=atof(b);
-    z[i]=atof(c);
+    xc[i]=atof(a);
+    yc[i]=atof(b);
+    zc[i]=atof(c);
     if(!(i%1000)) cout<<i<<endl;
   }
 }
@@ -112,9 +76,9 @@ void calcCPU(){
     double subtotal=0.0f, dx, dy, dz;
     for(int j=0;j<lines;j++){
       if(i==j) continue;
-      dx=x[i]-x[j];
-      dx=y[i]-y[j];
-      dx=z[i]-z[j];
+      dx=xc[i]-xc[j];
+      dx=yc[i]-yc[j];
+      dx=zc[i]-zc[j];
       double d=sqrt(dx*dx+dy*dy+dz*dz);
       if(d==0.0f) continue;
       subtotal+=1/d;
@@ -165,4 +129,34 @@ void calcGPUTiled(){
     //if(i%(lines*1000) == 0) cout<<endl;
   }
   cout<<total<<endl;
+}
+
+
+int main(int argc, char* argv[]){
+  char* &filename = argv[1];
+  vector<const char*> lineAddrs;
+  int ndex = 0;//omp_get_max_threads();
+  if(argc>=3) ndex=atoi(argv[2]);
+  struct stat st;
+  stat(filename, &st);
+  size_t filesize = st.st_size;
+  int fd = open(filename,O_RDONLY,0);
+  void* file = mmap(NULL,  filesize, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0);
+  const char* input = (const char*) file;
+  lines=0;
+  lineAddrs.push_back(input);
+  for(int i=0;i<filesize;i++){
+    if(input[i]=='\n'){
+      lines++;
+      lineAddrs.push_back(input+i+1);
+    }
+  }
+  fillCPU();
+  fillGPU();
+  fillGPUTiled();
+  munmap(file, filesize);
+  calcCPU();
+  calcGPU();
+  calcGPUTiled();
+  return 0;
 }
