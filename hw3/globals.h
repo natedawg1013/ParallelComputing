@@ -9,9 +9,9 @@ typedef struct {
 
 #define BLOCK_SIZE 16
 
-float *xc, *yc, *zc;
+float *xc, *yc, *zc, *resc;
 
-__device__ __managed__ float *x, *y, *z, *res;
+__device__ __managed__ float *x, *y, *z, *res, *res2;
 
 float *valuesA;
 float *valuesB;

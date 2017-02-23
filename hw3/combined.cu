@@ -18,6 +18,7 @@ void fillCPU(vector<const char*> &lineAddrs){
   xc=(float*) malloc((size_t) lines*sizeof(float));
   yc=(float*) malloc((size_t) lines*sizeof(float));
   zc=(float*) malloc((size_t) lines*sizeof(float));
+  resc=(float*) malloc((size_t) lines*lines*sizeof(float));
   for(int i=0;i<lines;i++){
     const char *a,*b,*c;
     char temp[30];
@@ -35,6 +36,7 @@ void fillGPU(vector<const char*> &lineAddrs){
   cudaMallocManaged(&y,   (size_t) lines*sizeof(float));
   cudaMallocManaged(&z,   (size_t) lines*sizeof(float));
   cudaMallocManaged(&res, (size_t) lines*sizeof(float));
+  cudaMallocManaged(&res2, (size_t) lines*lines*sizeof(float));
   for(int i=0;i<lines;i++){
     const char *a,*b,*c;
     a=lineAddrs[i];
@@ -75,6 +77,7 @@ void calcCPU(){
       double d=sqrt(dx*dx+dy*dy+dz*dz);
       if(d==0.0f) continue;
       subtotal+=1/d;
+      resc[i][j]=1/d;
     }
     total+=subtotal;
   }
