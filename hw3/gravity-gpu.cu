@@ -19,15 +19,15 @@ __global__ void calcGravity(const size_t n){
     float result = 0;
     for(int j=0;j<n;j++){
       if(j!=i){
-        float d = (x[i]-x[j])*(x[i]-x[j]);
-        d +=      (y[i]-y[j])*(y[i]-y[j]);
-        d +=      (z[i]-z[j])*(z[i]-z[j]);
+        float dx, dy, dz;
+        dx = x[i]-x[j];
+        dy = y[i]-y[j];
+        dz = z[i]-z[j];
         result+=1/sqrt(d);
       }
     }
     atomicAdd(&gpuTotal, result);
   }
-  
 }
 
 int main(int argc, char* argv[]){
@@ -41,6 +41,7 @@ int main(int argc, char* argv[]){
   const char* input = (const char*) file;
   int lines=0;
   lineAddrs.push_back(input);
+  cout<<"Reading file"<<endl;
   for(int i=0;i<filesize;i++){
     if(input[i]=='\n'){
       lines++;
@@ -58,7 +59,6 @@ int main(int argc, char* argv[]){
     x[i]=atof(a);
     y[i]=atof(b);
     z[i]=atof(c);
-    if(!(i%1000)) cout<<i<<endl;
   }
   munmap(file, filesize);
   
