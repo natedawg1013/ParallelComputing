@@ -55,8 +55,8 @@ int main(int argc, char* argv[]){
     for(int j=0;j<lines;j++){
       if(i==j) continue;
       dx=x[i]-x[j];
-      dx=y[i]-y[j];
-      dx=z[i]-z[j];
+      dy=y[i]-y[j];
+      dz=z[i]-z[j];
       double d=sqrt(dx*dx+dy*dy+dz*dz);
       if(d==0.0f) continue;
       subtotal+=1/d;
