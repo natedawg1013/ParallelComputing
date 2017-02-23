@@ -85,7 +85,7 @@ void calcCPU(){
     }
     total+=subtotal;
   }
-  cout<<total<<endl;
+  cout<<"CPU: "<<total<<endl;
 }
 
 void calcGPU(){
@@ -96,12 +96,12 @@ void calcGPU(){
   calcGravity<<<grid_size, block_size>>>(lines);
  
   cudaDeviceSynchronize();
-  cout<<"Summing"<<endl;
+  cout<<"GPU: "<<"Summing"<<endl;
   double total=0.0f;
   for(int i=0;i<lines;i++){
     total+=res[i];
   }
-  cout<<total<<endl;
+  cout<<"GPU: "<<total<<endl;
 }
 
 void calcGPUTiled(){
@@ -120,15 +120,12 @@ void calcGPUTiled(){
   C.elements=results;
   MatMul(A,B,C);
   cudaDeviceSynchronize();
-  cout<<"Summing"<<endl;
+  cout<<"GPU-Tiled: "<<"Summing"<<endl;
   double total=0.0f;
   for(int i=0;i<lines*lines;i++){
     total+=(double)results[i];
-    if(i%100000000 == 0) cout<<total<<endl;
-    if(isnan(results[i])) cout<<"NAN: "<<i<<endl;
-    //if(i%(lines*1000) == 0) cout<<endl;
   }
-  cout<<total<<endl;
+  cout<<"GPU-Tiled: "<<total<<endl;
 }
 
 
