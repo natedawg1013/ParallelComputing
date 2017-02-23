@@ -10,14 +10,13 @@
 #include <cmath>
 using namespace std;
 
-__device__ __managed__ float *x, *y, *z, *res, gpuTotal;
+__device__ __managed__ float *x, *y, *z, gpuTotal;
 
 __global__ void calcGravity(const size_t n){
   unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
   if(i==0) gpuTotal=0;
   if(i<n){
     float result = 0;
-    res[i]=0.0f;
     for(int j=0;j<n;j++){
       if(j!=i){
         float d = (x[i]-x[j])*(x[i]-x[j]);
@@ -26,8 +25,7 @@ __global__ void calcGravity(const size_t n){
         result+=1/sqrt(d);
       }
     }
-    res[i]=result;
-    atomicAdd(&gpuTotal, res[i]);
+    atomicAdd(&gpuTotal, result);
   }
   
 }
@@ -52,7 +50,6 @@ int main(int argc, char* argv[]){
   cudaMallocManaged(&x,   (size_t) lines*sizeof(float));
   cudaMallocManaged(&y,   (size_t) lines*sizeof(float));
   cudaMallocManaged(&z,   (size_t) lines*sizeof(float));
-  cudaMallocManaged(&res, (size_t) lines*sizeof(float));
   for(int i=0;i<lines;i++){
     const char *a,*b,*c;
     a=lineAddrs[i];
@@ -72,12 +69,7 @@ int main(int argc, char* argv[]){
   calcGravity<<<grid_size, block_size>>>(lines);
  
   cudaDeviceSynchronize();
-  cout<<"Summing"<<endl;
-  double total=0.0f;
-  for(int i=0;i<lines;i++){
-    total+=res[i];
-  }
-  cout<<total<<endl;
+
   cout<<gpuTotal<<endl;
   return 0;
 }
