@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
   calcGravity<<<grid_size, block_size>>>(lines);
  
   cudaDeviceSynchronize();
-
+  gpuTotal*=-1;
   cout<<gpuTotal<<endl;
   return 0;
 }
