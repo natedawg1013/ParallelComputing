@@ -27,7 +27,6 @@ void fillCPU(vector<const char*> &lineAddrs){
     xc[i]=atof(a);
     yc[i]=atof(b);
     zc[i]=atof(c);
-    if(!(i%1000)) cout<<i<<endl;
   }
 }
 
@@ -44,7 +43,6 @@ void fillGPU(vector<const char*> &lineAddrs){
     x[i]=atof(a);
     y[i]=atof(b);
     z[i]=atof(c);
-    if(!(i%1000)) cout<<i<<endl;
   }
 }
 
@@ -61,11 +59,6 @@ void fillGPUTiled(vector<const char*> &lineAddrs){
     valuesA[i]         = valuesB[3*i]   = atof(a);
     valuesA[lines+i]   = valuesB[3*i+1] = atof(b);
     valuesA[2*lines+i] = valuesB[3*i+2] = atof(c);
-    if(!(i%1000)) cout<<i<<endl;
-  }
-  for(int i=0;i<3*lines;i++){
-    if(isnan(valuesA[i])) cout<<"NAN A "<<i<<endl;
-    if(isnan(valuesB[i])) cout<<"NAN A "<<i<<endl;
   }
 }
 
