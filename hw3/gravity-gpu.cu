@@ -14,7 +14,7 @@ __device__ __managed__ float *x, *y, *z, *res, gpuTotal;
 
 __global__ void calcGravity(const size_t n){
   unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if(i==0) total=0;
+  if(i==0) gpuTotal=0;
   if(i<n){
     float result = 0;
     res[i]=0.0f;
