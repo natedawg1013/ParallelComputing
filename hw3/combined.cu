@@ -76,7 +76,7 @@ void calcCPU(){
       dx=zc[i]-zc[j];
       double d=sqrt(dx*dx+dy*dy+dz*dz);
       if(d==0.0f) continue;
-      resc[i][j]=1/d;
+      resc[i*lines+j]=1/d;
       subtotal+=1/d;
     }
     total+=subtotal;
