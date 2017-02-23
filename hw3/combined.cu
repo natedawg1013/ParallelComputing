@@ -85,9 +85,9 @@ void fillGPU(){
 }
 
 void fillGPUTiled(){
-  float *valuesA = new float[lines*3];
-  float *valuesB = new float[lines*3];
-  float *results = new float[lines*lines];
+  valuesA = new float[lines*3];
+  valuesB = new float[lines*3];
+  results = new float[lines*lines];
   cudaMallocManaged(&res, (int) (lines*sizeof(float)));
   for(int i=0;i<lines;i++){
     const char *a,*b,*c;

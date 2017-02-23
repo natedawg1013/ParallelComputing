@@ -14,3 +14,7 @@ typedef struct {
 float *x, *y, *z;
 
 __device__ __managed__ float *x, *y, *z, *res;
+
+float *valuesA;
+float *valuesB;
+float *results;
