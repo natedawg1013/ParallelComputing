@@ -8,7 +8,7 @@ __global__ void calcGravity(const size_t n){
         d +=      (y[i]-y[j])*(y[i]-y[j]);
         d +=      (z[i]-z[j])*(z[i]-z[j]);
         res[i]+=1/sqrt(d);
-        res2[i*lines+j]=1/sqrt(d);
+        res2[i*n+j]=1/sqrt(d);
       }
     }
   }
