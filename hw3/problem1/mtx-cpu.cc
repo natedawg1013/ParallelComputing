@@ -5,16 +5,20 @@
 
 using namespace std;
 
+#define MTX_DIM 100
+
+//Matrices are row-major
+
 int main(int argc, char* argv[]){
-  volatile int a[100][100];
-  volatile int b[100][100];
-  volatile int c[100][100];
+  volatile int a[MTX_DIM][MTX_DIM];
+  volatile int b[MTX_DIM][MTX_DIM];
+  volatile int c[MTX_DIM][MTX_DIM];
   
   struct timespec start, finish;
   double elapsed;
 
-  for(int i=0;i<100;i++){
-    for(int j=0;j<100;j++){
+  for(int i=0;i<MTX_DIM;i++){
+    for(int j=0;j<MTX_DIM;j++){
       a[i][j]=rand();
       b[i][j]=rand();
     }
@@ -22,8 +26,12 @@ int main(int argc, char* argv[]){
   
   clock_gettime(CLOCK_MONOTONIC, &start);
 #pragma omp parallel for
-  for(int i=0;i<100;i++){
-    for(int j=0;j<100;j++){
+  for(int i=0;i<MTX_DIM;i++){
+#pragma omp parallel for
+    for(int j=0;j<MTX_DIM;j++){
+      for(int k=0;k<MTX_DIM;k++){
+        c[i][j]+=a[i][k]*b[k][j];
+      }
       c[i][j]=a[i][j]*b[i][j];
     }
   }
