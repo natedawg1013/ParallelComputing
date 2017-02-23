@@ -14,7 +14,7 @@
 
 using namespace std;
 
-void fillCPU(){
+void fillCPU(vector<const char*> &lineAddrs){
   xc=(float*) malloc((size_t) lines*sizeof(float));
   yc=(float*) malloc((size_t) lines*sizeof(float));
   zc=(float*) malloc((size_t) lines*sizeof(float));
@@ -31,7 +31,7 @@ void fillCPU(){
   }
 }
 
-void fillGPU(){
+void fillGPU(vector<const char*> &lineAddrs){
   cudaMallocManaged(&x,   (size_t) lines*sizeof(float));
   cudaMallocManaged(&y,   (size_t) lines*sizeof(float));
   cudaMallocManaged(&z,   (size_t) lines*sizeof(float));
@@ -48,7 +48,7 @@ void fillGPU(){
   }
 }
 
-void fillGPUTiled(){
+void fillGPUTiled(vector<const char*> &lineAddrs){
   valuesA = new float[lines*3];
   valuesB = new float[lines*3];
   results = new float[lines*lines];
@@ -151,9 +151,9 @@ int main(int argc, char* argv[]){
       lineAddrs.push_back(input+i+1);
     }
   }
-  fillCPU();
-  fillGPU();
-  fillGPUTiled();
+  fillCPU(lineAddrs);
+  fillGPU(lineAddrs);
+  fillGPUTiled(lineAddrs);
   munmap(file, filesize);
   calcCPU();
   calcGPU();

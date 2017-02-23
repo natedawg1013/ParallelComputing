@@ -1,5 +1,3 @@
-__device__ __managed__ float *x, *y, *z, *res;
-
 // Matrices are stored in row-major order:
 // M(row, col) = *(M.elements + row * M.stride + col)
 typedef struct {
